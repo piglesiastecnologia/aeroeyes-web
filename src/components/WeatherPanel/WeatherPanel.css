@@ -1,0 +1,8 @@
+.weather-panel__body {
+  margin-top: var(--space-6);
+}
+
+.weather-panel .panel__description {
+  margin-top: var(--space-3);
+  max-width: 36ch;
+}

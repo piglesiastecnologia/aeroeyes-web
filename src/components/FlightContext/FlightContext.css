@@ -1,0 +1,30 @@
+.flight-context {
+  display: flex;
+  flex-direction: column;
+}
+
+.flight-context__body {
+  flex: 1;
+  padding-block: var(--space-6);
+}
+
+.flight-context__symbol {
+  width: 48px;
+  height: 32px;
+  margin-bottom: var(--space-5);
+  color: var(--color-text-muted);
+}
+
+.flight-context .panel__description {
+  margin-top: var(--space-3);
+  max-width: 30ch;
+}
+
+.flight-context__action {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}

@@ -1,0 +1,84 @@
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  padding-block: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-header__identity {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+.app-header__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.app-header__mark {
+  width: 32px;
+  height: 32px;
+  color: var(--color-text-secondary);
+}
+
+.app-header__title {
+  border-left: 1px solid var(--color-border);
+  padding-left: var(--space-6);
+}
+
+.app-header h1 {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.app-header__title p {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.app-header__statuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  margin: 0;
+}
+
+.app-header__statuses > div {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.app-header dt {
+  color: var(--color-text-secondary);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.app-header dd {
+  margin: 0;
+}
+
+@media (max-width: 1099px) {
+  .app-header__identity { gap: var(--space-4); }
+  .app-header__title { padding-left: var(--space-4); }
+}
+
+@media (max-width: 767px) {
+  .app-header__identity { width: 100%; }
+  .app-header__title {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .app-header__statuses { gap: var(--space-5); }
+}

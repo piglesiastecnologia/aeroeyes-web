@@ -1,0 +1,21 @@
+.monitoring-session__content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  margin-top: var(--space-6);
+}
+
+.monitoring-session .panel__description {
+  margin-top: var(--space-2);
+}
+
+.monitoring-session__action {
+  display: grid;
+  gap: var(--space-2);
+}
+
+@media (max-width: 767px) {
+  .monitoring-session__action { width: 100%; }
+}

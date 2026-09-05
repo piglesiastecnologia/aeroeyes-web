@@ -1,0 +1,69 @@
+.monitoring-console {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  max-width: 1600px;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 3vw, 3rem);
+}
+
+.monitoring-console__grid {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 65fr) minmax(0, 35fr);
+  grid-template-rows: minmax(370px, 1fr) auto;
+  grid-template-areas:
+    'attention context'
+    'session weather';
+  gap: var(--space-4);
+  margin-block: var(--space-5);
+}
+
+.monitoring-console__grid > .attention-status { grid-area: attention; }
+.monitoring-console__grid > .monitoring-session { grid-area: session; }
+.monitoring-console__grid > .flight-context { grid-area: context; }
+.monitoring-console__grid > .weather-panel { grid-area: weather; }
+
+.monitoring-console__footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-block: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+}
+
+.monitoring-console__footer span span {
+  padding-inline: var(--space-2);
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: var(--space-4);
+  z-index: 1;
+  padding: var(--space-3);
+  background: var(--color-text-primary);
+  color: var(--color-bg);
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+@media (min-width: 768px) and (max-width: 1099px) {
+  .monitoring-console__grid {
+    grid-template-columns: minmax(0, 60fr) minmax(0, 40fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .monitoring-console__grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(350px, auto) repeat(3, auto);
+    grid-template-areas: 'attention' 'session' 'context' 'weather';
+  }
+}
