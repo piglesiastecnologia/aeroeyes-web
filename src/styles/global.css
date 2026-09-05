@@ -73,6 +73,16 @@ button, a {
   text-transform: uppercase;
 }
 
+.console-button:not(:disabled) {
+  border-color: var(--color-normal);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.console-button:not(:disabled):hover {
+  background: var(--color-border);
+}
+
 .console-button:disabled {
   cursor: not-allowed;
 }

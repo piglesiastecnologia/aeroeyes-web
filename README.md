@@ -18,6 +18,8 @@ npm run dev
 
 The console requests `GET /health` once when it mounts. A valid AeroEyes Monitoring API response displays `API ONLINE`; missing configuration, connectivity errors, non-success responses, or an unexpected payload display `API OFFLINE`.
 
+When the API is online, **Start monitoring** creates a real MonitoringSession through `POST /sessions`. The session ID is retained in `sessionStorage` for the current browser tab, and a reload restores the canonical session with `GET /sessions/{session_id}`. An active session is completed through `POST /sessions/{session_id}/complete`.
+
 ## Vite template notes
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

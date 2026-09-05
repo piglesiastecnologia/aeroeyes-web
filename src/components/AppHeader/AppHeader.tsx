@@ -1,9 +1,11 @@
 import type { ApiStatus } from '../../api/monitoringApi'
+import type { SessionDisplayStatus } from '../../hooks/useMonitoringSession'
 import { StatusBadge } from '../StatusBadge/StatusBadge'
 import './AppHeader.css'
 
 type AppHeaderProps = {
   apiStatus: ApiStatus
+  sessionStatus: SessionDisplayStatus
 }
 
 const apiStatusVariants = {
@@ -13,7 +15,14 @@ const apiStatusVariants = {
   OFFLINE: 'critical',
 } as const satisfies Record<ApiStatus, 'neutral' | 'normal' | 'critical'>
 
-export function AppHeader({ apiStatus }: AppHeaderProps) {
+const sessionStatusVariants = {
+  UNKNOWN: 'neutral',
+  NONE: 'neutral',
+  ACTIVE: 'normal',
+  COMPLETED: 'neutral',
+} as const satisfies Record<SessionDisplayStatus, 'neutral' | 'normal'>
+
+export function AppHeader({ apiStatus, sessionStatus }: AppHeaderProps) {
   return (
     <header className="app-header">
       <div className="app-header__identity">
@@ -35,7 +44,12 @@ export function AppHeader({ apiStatus }: AppHeaderProps) {
             <StatusBadge label={apiStatus} variant={apiStatusVariants[apiStatus]} />
           </dd>
         </div>
-        <div><dt>Session</dt><dd><StatusBadge label="NONE" /></dd></div>
+        <div>
+          <dt>Session</dt>
+          <dd aria-live="polite" aria-atomic="true">
+            <StatusBadge label={sessionStatus} variant={sessionStatusVariants[sessionStatus]} />
+          </dd>
+        </div>
       </dl>
     </header>
   )
