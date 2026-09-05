@@ -1,4 +1,24 @@
-# React + TypeScript + Vite
+# AeroEyes Web
+
+EFB-inspired Monitoring Console built with React, TypeScript, and Vite.
+
+## Local development
+
+Copy `.env.example` to `.env.local` and configure the Monitoring API base URL:
+
+```dotenv
+VITE_MONITORING_API_URL=http://127.0.0.1:8000
+```
+
+Then start the frontend:
+
+```sh
+npm run dev
+```
+
+The console requests `GET /health` once when it mounts. A valid AeroEyes Monitoring API response displays `API ONLINE`; missing configuration, connectivity errors, non-success responses, or an unexpected payload display `API OFFLINE`.
+
+## Vite template notes
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

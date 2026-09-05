@@ -1,7 +1,19 @@
+import type { ApiStatus } from '../../api/monitoringApi'
 import { StatusBadge } from '../StatusBadge/StatusBadge'
 import './AppHeader.css'
 
-export function AppHeader() {
+type AppHeaderProps = {
+  apiStatus: ApiStatus
+}
+
+const apiStatusVariants = {
+  UNKNOWN: 'neutral',
+  CHECKING: 'neutral',
+  ONLINE: 'normal',
+  OFFLINE: 'critical',
+} as const satisfies Record<ApiStatus, 'neutral' | 'normal' | 'critical'>
+
+export function AppHeader({ apiStatus }: AppHeaderProps) {
   return (
     <header className="app-header">
       <div className="app-header__identity">
@@ -17,7 +29,12 @@ export function AppHeader() {
         </div>
       </div>
       <dl className="app-header__statuses">
-        <div><dt>API</dt><dd><StatusBadge label="UNKNOWN" /></dd></div>
+        <div>
+          <dt>API</dt>
+          <dd aria-live="polite" aria-atomic="true">
+            <StatusBadge label={apiStatus} variant={apiStatusVariants[apiStatus]} />
+          </dd>
+        </div>
         <div><dt>Session</dt><dd><StatusBadge label="NONE" /></dd></div>
       </dl>
     </header>
