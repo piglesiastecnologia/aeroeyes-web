@@ -1,13 +1,17 @@
+import { useState } from 'react'
 import { AppHeader } from '../../components/AppHeader/AppHeader'
 import { AttentionStatus } from '../../components/AttentionStatus/AttentionStatus'
 import { MonitoringSession } from '../../components/MonitoringSession/MonitoringSession'
 import { FlightContext } from '../../components/FlightContext/FlightContext'
+import { FlightContextDrawer } from '../../components/FlightContextDrawer/FlightContextDrawer'
 import { WeatherPanel } from '../../components/WeatherPanel/WeatherPanel'
 import { useMonitoringApiHealth } from '../../hooks/useMonitoringApiHealth'
 import { useMonitoringSession } from '../../hooks/useMonitoringSession'
+import { useSessionContext } from '../../hooks/useSessionContext'
 import './MonitoringConsole.css'
 
 export function MonitoringConsole() {
+  const [drawerSessionId, setDrawerSessionId] = useState<string | null>(null)
   const { status: apiStatus } = useMonitoringApiHealth()
   const {
     session,
@@ -18,6 +22,37 @@ export function MonitoringConsole() {
     startSession,
     completeSession,
   } = useMonitoringSession(apiStatus)
+  const {
+    context,
+    displayStatus: contextDisplayStatus,
+    operation: contextOperation,
+    error: contextError,
+    saveContext,
+    clearContext,
+    clearError: clearContextError,
+  } = useSessionContext(apiStatus, session, isSessionStateResolved)
+  const canEditContext = (
+    apiStatus === 'ONLINE'
+    && isSessionStateResolved
+    && session !== null
+    && contextOperation === 'IDLE'
+    && (contextDisplayStatus === 'EMPTY' || contextDisplayStatus === 'AVAILABLE')
+  )
+  const isDrawerOpen = (
+    drawerSessionId !== null
+    && drawerSessionId === session?.session_id
+    && apiStatus === 'ONLINE'
+    && (contextDisplayStatus === 'EMPTY' || contextDisplayStatus === 'AVAILABLE')
+  )
+
+  function openContextDrawer() {
+    if (!canEditContext || session === null) {
+      return
+    }
+
+    clearContextError()
+    setDrawerSessionId(session.session_id)
+  }
 
   return (
     <div className="monitoring-console">
@@ -35,9 +70,28 @@ export function MonitoringConsole() {
           onStart={startSession}
           onComplete={completeSession}
         />
-        <FlightContext />
+        <FlightContext
+          context={context}
+          status={contextDisplayStatus}
+          operation={contextOperation}
+          error={contextError}
+          hasSession={session !== null}
+          canEdit={canEditContext}
+          onEdit={openContextDrawer}
+        />
         <WeatherPanel />
       </main>
+      {isDrawerOpen && (
+        <FlightContextDrawer
+          key={drawerSessionId}
+          context={context}
+          operation={contextOperation}
+          error={contextError}
+          onSave={saveContext}
+          onClear={clearContext}
+          onClose={() => setDrawerSessionId(null)}
+        />
+      )}
       <footer className="monitoring-console__footer">
         <span>AeroEyes <span aria-hidden="true">/</span> EFB Monitoring Console</span>
         <span>

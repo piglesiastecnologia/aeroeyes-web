@@ -14,6 +14,36 @@ export type MonitoringSessionResponse = {
   ended_at: string | null
 }
 
+export type SessionContextResponse = {
+  session_id: string
+  flight_number: string | null
+  departure_icao: string | null
+  destination_icao: string | null
+}
+
+export type SessionContextReplaceRequest = {
+  flight_number: string | null
+  departure_icao: string | null
+  destination_icao: string | null
+}
+
+type MonitoringApiErrorDetail = {
+  code: string
+  message: string
+}
+
+export class SessionContextApiError extends Error {
+  readonly status: number
+  readonly code: string | null
+
+  constructor(message: string, status: number, code: string | null = null) {
+    super(message)
+    this.name = 'SessionContextApiError'
+    this.status = status
+    this.code = code
+  }
+}
+
 const TIMEZONE_AWARE_DATETIME_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:[zZ]|[+-]\d{2}:\d{2})$/
 
 function buildMonitoringApiUrl(path: string): string {
@@ -78,6 +108,67 @@ function isMonitoringSessionResponse(payload: unknown): payload is MonitoringSes
   return payload.status === 'ACTIVE'
     ? payload.ended_at === null
     : isValidDateTime(payload.ended_at)
+}
+
+function isMonitoringApiErrorDetail(payload: unknown): payload is MonitoringApiErrorDetail {
+  return (
+    typeof payload === 'object'
+    && payload !== null
+    && 'code' in payload
+    && typeof payload.code === 'string'
+    && 'message' in payload
+    && typeof payload.message === 'string'
+  )
+}
+
+function isSessionContextResponse(payload: unknown): payload is SessionContextResponse {
+  return (
+    typeof payload === 'object'
+    && payload !== null
+    && 'session_id' in payload
+    && typeof payload.session_id === 'string'
+    && payload.session_id.trim() !== ''
+    && 'flight_number' in payload
+    && (typeof payload.flight_number === 'string' || payload.flight_number === null)
+    && 'departure_icao' in payload
+    && (payload.departure_icao === null
+      || (typeof payload.departure_icao === 'string' && /^[A-Z]{4}$/.test(payload.departure_icao)))
+    && 'destination_icao' in payload
+    && (payload.destination_icao === null
+      || (typeof payload.destination_icao === 'string' && /^[A-Z]{4}$/.test(payload.destination_icao)))
+  )
+}
+
+async function readErrorDetail(response: Response): Promise<MonitoringApiErrorDetail | null> {
+  try {
+    const payload: unknown = await response.json()
+
+    if (
+      typeof payload === 'object'
+      && payload !== null
+      && 'detail' in payload
+      && isMonitoringApiErrorDetail(payload.detail)
+    ) {
+      return payload.detail
+    }
+  } catch {
+    // A malformed error body is handled as an unclassified API failure.
+  }
+
+  return null
+}
+
+async function readSessionContext(
+  response: Response,
+  requestedSessionId: string,
+): Promise<SessionContextResponse> {
+  const payload: unknown = await response.json()
+
+  if (!isSessionContextResponse(payload) || payload.session_id !== requestedSessionId) {
+    throw new Error('Monitoring API returned an unexpected session context response')
+  }
+
+  return payload
 }
 
 async function readMonitoringSession(response: Response): Promise<MonitoringSessionResponse> {
@@ -176,4 +267,110 @@ export async function completeMonitoringSession(
   }
 
   return session
+}
+
+export async function getSessionContext(
+  sessionId: string,
+  signal?: AbortSignal,
+): Promise<SessionContextResponse | null> {
+  const response = await fetch(
+    buildMonitoringApiUrl(`sessions/${encodeURIComponent(sessionId)}/context`),
+    { signal },
+  )
+
+  if (response.status === 404) {
+    const detail = await readErrorDetail(response)
+
+    if (detail?.code === 'SESSION_CONTEXT_NOT_FOUND') {
+      return null
+    }
+
+    throw new SessionContextApiError(
+      detail?.code === 'SESSION_NOT_FOUND'
+        ? 'The owning monitoring session no longer exists.'
+        : 'Flight context request failed.',
+      response.status,
+      detail?.code ?? null,
+    )
+  }
+
+  if (response.status !== 200) {
+    throw new SessionContextApiError('Flight context request failed.', response.status)
+  }
+
+  return readSessionContext(response, sessionId)
+}
+
+export async function replaceSessionContext(
+  sessionId: string,
+  context: SessionContextReplaceRequest,
+  signal?: AbortSignal,
+): Promise<SessionContextResponse> {
+  const response = await fetch(
+    buildMonitoringApiUrl(`sessions/${encodeURIComponent(sessionId)}/context`),
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(context),
+      signal,
+    },
+  )
+
+  if (response.status === 422) {
+    const detail = await readErrorDetail(response)
+
+    throw new SessionContextApiError(
+      detail?.code === 'INVALID_SESSION_CONTEXT' && detail.message.trim() !== ''
+        ? detail.message.slice(0, 240)
+        : 'Flight context is invalid.',
+      response.status,
+      detail?.code ?? null,
+    )
+  }
+
+  if (response.status === 404) {
+    const detail = await readErrorDetail(response)
+
+    throw new SessionContextApiError(
+      detail?.code === 'SESSION_NOT_FOUND'
+        ? 'The owning monitoring session no longer exists.'
+        : 'Flight context could not be saved.',
+      response.status,
+      detail?.code ?? null,
+    )
+  }
+
+  if (response.status !== 200) {
+    throw new SessionContextApiError('Flight context could not be saved.', response.status)
+  }
+
+  return readSessionContext(response, sessionId)
+}
+
+export async function deleteSessionContext(
+  sessionId: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  const response = await fetch(
+    buildMonitoringApiUrl(`sessions/${encodeURIComponent(sessionId)}/context`),
+    { method: 'DELETE', signal },
+  )
+
+  if (response.status === 204) {
+    return
+  }
+
+  if (response.status === 404) {
+    const detail = await readErrorDetail(response)
+
+    throw new SessionContextApiError(
+      detail?.code === 'SESSION_NOT_FOUND'
+        ? 'The owning monitoring session no longer exists.'
+        : 'Flight context could not be cleared.',
+      response.status,
+      detail?.code ?? null,
+    )
+  }
+
+  throw new SessionContextApiError('Flight context could not be cleared.', response.status)
 }

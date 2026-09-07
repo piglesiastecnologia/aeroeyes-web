@@ -20,6 +20,8 @@ The console requests `GET /health` once when it mounts. A valid AeroEyes Monitor
 
 When the API is online, **Start monitoring** creates a real MonitoringSession through `POST /sessions`. The session ID is retained in `sessionStorage` for the current browser tab, and a reload restores the canonical session with `GET /sessions/{session_id}`. An active session is completed through `POST /sessions/{session_id}/complete`.
 
+Flight Context belongs to the current MonitoringSession and is always loaded from the Monitoring API with `GET /sessions/{session_id}/context`; context data is not persisted in browser storage. Saving sends all fields through `PUT`, which completely replaces the context resource, while **Clear context** removes it through `DELETE`.
+
 ## Vite template notes
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
