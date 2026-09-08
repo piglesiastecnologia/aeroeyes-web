@@ -8,6 +8,7 @@ import { WeatherPanel } from '../../components/WeatherPanel/WeatherPanel'
 import { useMonitoringApiHealth } from '../../hooks/useMonitoringApiHealth'
 import { useMonitoringSession } from '../../hooks/useMonitoringSession'
 import { useSessionContext } from '../../hooks/useSessionContext'
+import { useSessionWeather } from '../../hooks/useSessionWeather'
 import './MonitoringConsole.css'
 
 export function MonitoringConsole() {
@@ -31,6 +32,20 @@ export function MonitoringConsole() {
     clearContext,
     clearError: clearContextError,
   } = useSessionContext(apiStatus, session, isSessionStateResolved)
+  const {
+    weather,
+    displayStatus: weatherDisplayStatus,
+    operation: weatherOperation,
+    error: weatherError,
+    canRefresh: canRefreshWeather,
+    refreshWeather,
+  } = useSessionWeather(
+    apiStatus,
+    session,
+    isSessionStateResolved,
+    context,
+    contextDisplayStatus,
+  )
   const canEditContext = (
     apiStatus === 'ONLINE'
     && isSessionStateResolved
@@ -79,7 +94,14 @@ export function MonitoringConsole() {
           canEdit={canEditContext}
           onEdit={openContextDrawer}
         />
-        <WeatherPanel />
+        <WeatherPanel
+          weather={weather}
+          status={weatherDisplayStatus}
+          operation={weatherOperation}
+          error={weatherError}
+          canRefresh={canRefreshWeather}
+          onRefresh={refreshWeather}
+        />
       </main>
       {isDrawerOpen && (
         <FlightContextDrawer

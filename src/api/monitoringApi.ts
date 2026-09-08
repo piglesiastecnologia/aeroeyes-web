@@ -27,6 +27,40 @@ export type SessionContextReplaceRequest = {
   destination_icao: string | null
 }
 
+export type MetarReportType = 'METAR' | 'SPECI'
+
+export type FlightCategory = 'VFR' | 'MVFR' | 'IFR' | 'LIFR'
+
+export type MetarObservationResponse = {
+  station_icao: string
+  report_type: MetarReportType
+  observed_at: string
+  raw_text: string
+  flight_category: FlightCategory | null
+  temperature_c: number | null
+  dewpoint_c: number | null
+  wind_direction_deg: number | null
+  wind_variable: boolean
+  wind_speed_kt: number | null
+  wind_gust_kt: number | null
+  visibility_sm: number | null
+  visibility_greater_than: boolean
+  weather: string | null
+  ceiling_ft_agl: number | null
+  altimeter_hpa: number | null
+}
+
+export type AirportWeatherResponse = {
+  station_icao: string
+  observation: MetarObservationResponse | null
+}
+
+export type SessionWeatherResponse = {
+  session_id: string
+  departure: AirportWeatherResponse | null
+  destination: AirportWeatherResponse | null
+}
+
 type MonitoringApiErrorDetail = {
   code: string
   message: string
@@ -39,6 +73,18 @@ export class SessionContextApiError extends Error {
   constructor(message: string, status: number, code: string | null = null) {
     super(message)
     this.name = 'SessionContextApiError'
+    this.status = status
+    this.code = code
+  }
+}
+
+export class SessionWeatherApiError extends Error {
+  readonly status: number
+  readonly code: string | null
+
+  constructor(message: string, status: number, code: string | null = null) {
+    super(message)
+    this.name = 'SessionWeatherApiError'
     this.status = status
     this.code = code
   }
@@ -139,6 +185,110 @@ function isSessionContextResponse(payload: unknown): payload is SessionContextRe
   )
 }
 
+function isNullableFiniteNumber(value: unknown): value is number | null {
+  return value === null || (typeof value === 'number' && Number.isFinite(value))
+}
+
+function isNullableNonNegativeNumber(value: unknown): value is number | null {
+  return value === null || (typeof value === 'number' && Number.isFinite(value) && value >= 0)
+}
+
+function isMetarObservationResponse(
+  payload: unknown,
+  stationIcao: string,
+): payload is MetarObservationResponse {
+  if (typeof payload !== 'object' || payload === null) {
+    return false
+  }
+
+  return (
+    'station_icao' in payload
+    && payload.station_icao === stationIcao
+    && 'report_type' in payload
+    && (payload.report_type === 'METAR' || payload.report_type === 'SPECI')
+    && 'observed_at' in payload
+    && isValidDateTime(payload.observed_at)
+    && 'raw_text' in payload
+    && typeof payload.raw_text === 'string'
+    && payload.raw_text.trim() !== ''
+    && 'flight_category' in payload
+    && (
+      payload.flight_category === null
+      || payload.flight_category === 'VFR'
+      || payload.flight_category === 'MVFR'
+      || payload.flight_category === 'IFR'
+      || payload.flight_category === 'LIFR'
+    )
+    && 'temperature_c' in payload
+    && isNullableFiniteNumber(payload.temperature_c)
+    && 'dewpoint_c' in payload
+    && isNullableFiniteNumber(payload.dewpoint_c)
+    && 'wind_direction_deg' in payload
+    && (
+      payload.wind_direction_deg === null
+      || (
+        typeof payload.wind_direction_deg === 'number'
+        && Number.isInteger(payload.wind_direction_deg)
+        && payload.wind_direction_deg >= 0
+        && payload.wind_direction_deg <= 360
+      )
+    )
+    && 'wind_variable' in payload
+    && typeof payload.wind_variable === 'boolean'
+    && 'wind_speed_kt' in payload
+    && isNullableNonNegativeNumber(payload.wind_speed_kt)
+    && 'wind_gust_kt' in payload
+    && isNullableNonNegativeNumber(payload.wind_gust_kt)
+    && 'visibility_sm' in payload
+    && isNullableNonNegativeNumber(payload.visibility_sm)
+    && 'visibility_greater_than' in payload
+    && typeof payload.visibility_greater_than === 'boolean'
+    && 'weather' in payload
+    && (payload.weather === null || typeof payload.weather === 'string')
+    && 'ceiling_ft_agl' in payload
+    && isNullableNonNegativeNumber(payload.ceiling_ft_agl)
+    && 'altimeter_hpa' in payload
+    && (
+      payload.altimeter_hpa === null
+      || (
+        typeof payload.altimeter_hpa === 'number'
+        && Number.isFinite(payload.altimeter_hpa)
+        && payload.altimeter_hpa > 0
+      )
+    )
+  )
+}
+
+function isAirportWeatherResponse(payload: unknown): payload is AirportWeatherResponse {
+  if (
+    typeof payload !== 'object'
+    || payload === null
+    || !('station_icao' in payload)
+    || typeof payload.station_icao !== 'string'
+    || !/^[A-Z]{4}$/.test(payload.station_icao)
+    || !('observation' in payload)
+  ) {
+    return false
+  }
+
+  return payload.observation === null
+    || isMetarObservationResponse(payload.observation, payload.station_icao)
+}
+
+function isSessionWeatherResponse(payload: unknown): payload is SessionWeatherResponse {
+  return (
+    typeof payload === 'object'
+    && payload !== null
+    && 'session_id' in payload
+    && typeof payload.session_id === 'string'
+    && payload.session_id.trim() !== ''
+    && 'departure' in payload
+    && (payload.departure === null || isAirportWeatherResponse(payload.departure))
+    && 'destination' in payload
+    && (payload.destination === null || isAirportWeatherResponse(payload.destination))
+  )
+}
+
 async function readErrorDetail(response: Response): Promise<MonitoringApiErrorDetail | null> {
   try {
     const payload: unknown = await response.json()
@@ -166,6 +316,22 @@ async function readSessionContext(
 
   if (!isSessionContextResponse(payload) || payload.session_id !== requestedSessionId) {
     throw new Error('Monitoring API returned an unexpected session context response')
+  }
+
+  return payload
+}
+
+async function readSessionWeather(
+  response: Response,
+  requestedSessionId: string,
+): Promise<SessionWeatherResponse> {
+  const payload: unknown = await response.json()
+
+  if (!isSessionWeatherResponse(payload) || payload.session_id !== requestedSessionId) {
+    throw new SessionWeatherApiError(
+      'Could not load current weather.',
+      response.status,
+    )
   }
 
   return payload
@@ -373,4 +539,54 @@ export async function deleteSessionContext(
   }
 
   throw new SessionContextApiError('Flight context could not be cleared.', response.status)
+}
+
+export async function getSessionWeather(
+  sessionId: string,
+  signal?: AbortSignal,
+): Promise<SessionWeatherResponse> {
+  const response = await fetch(
+    buildMonitoringApiUrl(`sessions/${encodeURIComponent(sessionId)}/weather`),
+    { signal },
+  )
+
+  if (response.status === 404) {
+    const detail = await readErrorDetail(response)
+
+    throw new SessionWeatherApiError(
+      detail?.code === 'SESSION_CONTEXT_NOT_FOUND'
+        ? 'No weather context is currently available.'
+        : detail?.code === 'SESSION_NOT_FOUND'
+          ? 'The owning monitoring session no longer exists.'
+          : 'Could not load current weather.',
+      response.status,
+      detail?.code ?? null,
+    )
+  }
+
+  if (response.status === 502) {
+    const detail = await readErrorDetail(response)
+
+    throw new SessionWeatherApiError(
+      'Weather data could not be validated.',
+      response.status,
+      detail?.code ?? null,
+    )
+  }
+
+  if (response.status === 503) {
+    const detail = await readErrorDetail(response)
+
+    throw new SessionWeatherApiError(
+      'Current aviation weather is temporarily unavailable.',
+      response.status,
+      detail?.code ?? null,
+    )
+  }
+
+  if (response.status !== 200) {
+    throw new SessionWeatherApiError('Could not load current weather.', response.status)
+  }
+
+  return readSessionWeather(response, sessionId)
 }
