@@ -57,6 +57,13 @@
   gap: var(--space-2);
 }
 
+@media (min-width: 1100px) {
+  .monitoring-session__content {
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+  }
+}
+
 @media (max-width: 767px) {
   .monitoring-session__action { width: 100%; }
 }

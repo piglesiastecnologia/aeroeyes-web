@@ -11,10 +11,13 @@
   display: grid;
   flex: 1;
   grid-template-columns: minmax(0, 65fr) minmax(0, 35fr);
-  grid-template-rows: minmax(370px, 1fr) auto;
+  grid-template-rows: auto auto auto;
   grid-template-areas:
     'attention context'
-    'session weather';
+    'attention session'
+    'weather weather';
+  align-items: start;
+  align-content: start;
   gap: var(--space-4);
   margin-block: var(--space-5);
 }
@@ -23,6 +26,11 @@
 .monitoring-console__grid > .monitoring-session { grid-area: session; }
 .monitoring-console__grid > .flight-context { grid-area: context; }
 .monitoring-console__grid > .weather-panel { grid-area: weather; }
+
+.monitoring-console__grid > .attention-status {
+  min-height: 370px;
+  align-self: stretch;
+}
 
 .monitoring-console__footer {
   display: flex;
@@ -54,16 +62,31 @@
   transform: translateY(0);
 }
 
+@media (min-width: 1100px) {
+  .monitoring-console__grid {
+    margin-block: var(--space-4);
+  }
+}
+
 @media (min-width: 768px) and (max-width: 1099px) {
   .monitoring-console__grid {
-    grid-template-columns: minmax(0, 60fr) minmax(0, 40fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      'attention attention'
+      'session context'
+      'weather weather';
   }
 }
 
 @media (max-width: 767px) {
   .monitoring-console__grid {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(350px, auto) repeat(3, auto);
+    grid-template-rows: auto auto auto auto;
     grid-template-areas: 'attention' 'session' 'context' 'weather';
+  }
+
+  .monitoring-console__grid > .attention-status {
+    min-height: 350px;
   }
 }

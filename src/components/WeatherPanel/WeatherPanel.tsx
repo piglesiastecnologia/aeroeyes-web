@@ -110,7 +110,19 @@ function AirportSlot({
     <article className="weather-panel__airport" aria-label={`${label.toLowerCase()} weather`}>
       <header className="weather-panel__airport-header">
         <span className="weather-panel__slot-label">{label}</span>
-        <strong className="weather-panel__station">{airport?.station_icao ?? 'Not configured'}</strong>
+        <div className="weather-panel__identity">
+          <strong className="weather-panel__station">{airport?.station_icao ?? 'Not configured'}</strong>
+          {observation && (
+            <span
+              className="weather-panel__category"
+              aria-label={observation.flight_category === null
+                ? 'Flight category unavailable'
+                : `Flight category ${observation.flight_category}`}
+            >
+              {observation.flight_category ?? 'CATEGORY —'}
+            </span>
+          )}
+        </div>
       </header>
 
       {airport === null ? (
@@ -122,27 +134,20 @@ function AirportSlot({
           <div className="weather-panel__observation-line">
             <span>{observation.report_type}</span>
             <time dateTime={observation.observed_at}>{formatObservedAt(observation.observed_at)}</time>
-            {observation.flight_category === null ? (
-              <span className="weather-panel__category">CATEGORY —</span>
-            ) : (
-              <span
-                className="weather-panel__category"
-                aria-label={`Flight category ${observation.flight_category}`}
-              >
-                {observation.flight_category}
-              </span>
-            )}
           </div>
 
-          <dl className="weather-panel__metrics">
+          <dl className="weather-panel__metrics weather-panel__metrics--primary">
             <WeatherValue label="Wind">{formatWind(observation)}</WeatherValue>
             <WeatherValue label="Visibility">{formatVisibility(observation)}</WeatherValue>
-            <WeatherValue label="Temp / dewpoint">{formatTemperature(observation)}</WeatherValue>
             <WeatherValue label="Ceiling">
               {observation.ceiling_ft_agl === null
                 ? '—'
                 : `${INTEGER_NUMBER.format(observation.ceiling_ft_agl)} ft AGL`}
             </WeatherValue>
+          </dl>
+
+          <dl className="weather-panel__metrics weather-panel__metrics--secondary">
+            <WeatherValue label="Temp / dewpoint">{formatTemperature(observation)}</WeatherValue>
             <WeatherValue label="Altimeter">
               {observation.altimeter_hpa === null
                 ? '—'
@@ -151,10 +156,10 @@ function AirportSlot({
             <WeatherValue label="Weather">{observation.weather || '—'}</WeatherValue>
           </dl>
 
-          <div className="weather-panel__raw">
-            <span>RAW METAR</span>
+          <details className="weather-panel__raw">
+            <summary>RAW METAR</summary>
             <code>{observation.raw_text}</code>
-          </div>
+          </details>
         </>
       )}
     </article>
