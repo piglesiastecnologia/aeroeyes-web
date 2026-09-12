@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100svh;
-  max-width: 1600px;
+  max-width: 1480px;
   margin-inline: auto;
   padding-inline: clamp(1rem, 3vw, 3rem);
 }
@@ -10,15 +10,15 @@
 .monitoring-console__grid {
   display: grid;
   flex: 1;
-  grid-template-columns: minmax(0, 65fr) minmax(0, 35fr);
+  grid-template-columns: minmax(0, 68fr) minmax(19rem, 32fr);
   grid-template-rows: auto auto auto;
   grid-template-areas:
-    'attention context'
+    'context context'
     'attention session'
     'weather weather';
   align-items: start;
   align-content: start;
-  gap: var(--space-4);
+  gap: 1.125rem;
   margin-block: var(--space-5);
 }
 
@@ -28,7 +28,7 @@
 .monitoring-console__grid > .weather-panel { grid-area: weather; }
 
 .monitoring-console__grid > .attention-status {
-  min-height: 370px;
+  min-height: 430px;
   align-self: stretch;
 }
 
@@ -40,7 +40,7 @@
   padding-block: var(--space-4);
   border-top: 1px solid var(--color-border);
   color: var(--color-text-muted);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 
 .monitoring-console__footer span span {
@@ -66,6 +66,10 @@
   .monitoring-console__grid {
     margin-block: var(--space-4);
   }
+
+  .monitoring-console__grid > .monitoring-session {
+    align-self: stretch;
+  }
 }
 
 @media (min-width: 768px) and (max-width: 1099px) {
@@ -87,6 +91,6 @@
   }
 
   .monitoring-console__grid > .attention-status {
-    min-height: 350px;
+    min-height: 390px;
   }
 }

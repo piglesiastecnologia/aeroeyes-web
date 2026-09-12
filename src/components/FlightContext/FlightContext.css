@@ -1,17 +1,20 @@
 .flight-context {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.7fr) minmax(0, 2fr) auto;
+  align-items: center;
+  gap: var(--space-5);
+  padding-block: var(--space-4);
 }
 
 .flight-context__body {
-  flex: 1;
-  padding-block: var(--space-6);
+  min-width: 0;
+  padding-block: 0;
 }
 
 .flight-context__symbol {
   width: 48px;
   height: 32px;
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-3);
   color: var(--color-text-muted);
 }
 
@@ -26,7 +29,7 @@
   gap: var(--space-3);
   color: var(--color-text-primary);
   font-family: var(--font-mono);
-  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-size: clamp(1.5rem, 3vw, 2rem);
   letter-spacing: 0.04em;
 }
 
@@ -38,7 +41,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-4);
-  margin: var(--space-6) 0 0;
+  margin: var(--space-3) 0 0;
 }
 
 .flight-context__details dt {
@@ -67,26 +70,26 @@
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-3);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
+  justify-content: flex-end;
+  padding: 0 0 0 var(--space-5);
+  border-top: 0;
+  border-left: 1px solid var(--color-border);
 }
 
 @media (min-width: 1100px) {
-  .flight-context__body {
-    padding-block: var(--space-4);
+  .flight-context .panel__header { align-self: stretch; align-content: center; padding-right: var(--space-5); border-right: 1px solid var(--color-border); }
+  .flight-context .panel__description { max-width: none; }
+}
+
+@media (max-width: 1099px) {
+  .flight-context {
+    display: flex;
+    align-items: stretch;
+    padding: var(--space-5);
   }
 
-  .flight-context__symbol {
-    margin-bottom: var(--space-3);
-  }
-
-  .flight-context__details {
-    margin-top: var(--space-4);
-  }
-
-  .flight-context__action {
-    padding-top: var(--space-3);
-  }
+  .flight-context__body { padding-block: var(--space-5); }
+  .flight-context__action { justify-content: flex-start; padding: var(--space-4) 0 0; border-left: 0; border-top: 1px solid var(--color-border); }
 }
 
 @media (max-width: 420px) {

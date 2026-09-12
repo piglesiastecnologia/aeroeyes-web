@@ -1,7 +1,18 @@
 .attention-status {
   display: flex;
   flex-direction: column;
-  border-top: 2px solid var(--color-inactive);
+  position: relative;
+  overflow: hidden;
+  border-top: 3px solid var(--color-inactive);
+}
+
+.attention-status::after {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 10rem;
+  content: '';
+  pointer-events: none;
+  background: radial-gradient(circle at 50% -40%, rgb(85 212 207 / 0.11), transparent 68%);
 }
 
 .attention-status__body {
@@ -10,8 +21,18 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-6) 0;
+  padding: 3rem var(--space-5) 2.5rem;
   text-align: center;
+}
+
+.attention-status__eyebrow {
+  margin-bottom: var(--space-5);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .attention-status__symbol {
@@ -19,12 +40,13 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  width: 52px;
-  height: 52px;
-  margin-bottom: var(--space-5);
+  width: 60px;
+  height: 60px;
+  margin-bottom: var(--space-6);
   border: 1px solid var(--color-border);
   border-radius: 50%;
-  color: var(--color-inactive);
+  color: var(--color-normal);
+  box-shadow: 0 0 0 7px rgb(85 212 207 / 0.05);
 }
 
 .attention-status__symbol span {
@@ -35,21 +57,58 @@
 
 .attention-status__state {
   font-family: var(--font-mono);
-  font-size: clamp(2.25rem, 5vw, 4rem);
+  font-size: clamp(2.75rem, 6vw, 5rem);
   font-weight: 500;
   line-height: 1.15;
   letter-spacing: 0.07em;
 }
 
 .attention-status__message {
-  margin-top: var(--space-5);
+  margin-top: var(--space-6);
   margin-bottom: var(--space-2);
-  font-size: 1rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.attention-status__telemetry {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.attention-status__telemetry > div {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+}
+
+.attention-status__telemetry > div + div {
+  border-left: 1px solid var(--color-border);
+}
+
+.attention-status__telemetry span {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.attention-status__telemetry strong {
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 
 .attention-status__footnote {
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-4);
+  padding-top: var(--space-3);
   color: var(--color-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 479px) {
+  .attention-status__body { padding-inline: 0; }
+  .attention-status__telemetry { grid-template-columns: 1fr; }
+  .attention-status__telemetry > div + div { border-left: 0; border-top: 1px solid var(--color-border); }
 }

@@ -49,7 +49,7 @@ export function MonitoringConsole() {
   const canEditContext = (
     apiStatus === 'ONLINE'
     && isSessionStateResolved
-    && session !== null
+    && session?.status === 'ACTIVE'
     && contextOperation === 'IDLE'
     && (contextDisplayStatus === 'EMPTY' || contextDisplayStatus === 'AVAILABLE')
   )
@@ -90,7 +90,7 @@ export function MonitoringConsole() {
           status={contextDisplayStatus}
           operation={contextOperation}
           error={contextError}
-          hasSession={session !== null}
+          sessionStatus={sessionDisplayStatus}
           canEdit={canEditContext}
           onEdit={openContextDrawer}
         />

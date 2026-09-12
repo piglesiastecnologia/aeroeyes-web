@@ -3,6 +3,7 @@ import type {
   SessionContextDisplayStatus,
   SessionContextOperation,
 } from '../../hooks/useSessionContext'
+import type { SessionDisplayStatus } from '../../hooks/useMonitoringSession'
 import { StatusBadge } from '../StatusBadge/StatusBadge'
 import './FlightContext.css'
 
@@ -11,7 +12,7 @@ type FlightContextProps = {
   status: SessionContextDisplayStatus
   operation: SessionContextOperation
   error: string | null
-  hasSession: boolean
+  sessionStatus: SessionDisplayStatus
   canEdit: boolean
   onEdit: () => void
 }
@@ -25,16 +26,19 @@ export function FlightContext({
   status,
   operation,
   error,
-  hasSession,
+  sessionStatus,
   canEdit,
   onEdit,
 }: FlightContextProps) {
   const isLoading = operation === 'LOADING'
+  const hasSession = sessionStatus === 'ACTIVE' || sessionStatus === 'COMPLETED'
   const actionLabel = status === 'EMPTY' ? 'Add context' : 'Edit context'
-  const actionNote = !hasSession
+  const actionNote = sessionStatus === 'NONE'
     ? 'Requires a monitoring session'
-    : status === 'UNKNOWN'
+    : sessionStatus === 'UNKNOWN' || status === 'UNKNOWN'
       ? isLoading ? 'Loading from Monitoring API' : 'Context state must be resolved'
+      : sessionStatus === 'COMPLETED'
+        ? 'Completed session context is read-only'
       : canEdit
         ? 'Edits this monitoring session'
         : 'Monitoring API unavailable'
@@ -78,12 +82,16 @@ export function FlightContext({
             <p className="panel__message">
               {status === 'UNKNOWN'
                 ? isLoading ? 'Loading flight context' : 'Flight context state unavailable'
-                : hasSession ? 'No flight context configured' : 'No monitoring session available'}
+                : sessionStatus === 'COMPLETED'
+                  ? 'No context recorded for this session'
+                  : hasSession ? 'No flight context configured' : 'No monitoring session available'}
             </p>
             <p className="panel__description">
               {status === 'UNKNOWN'
                 ? 'The current session context has not been confirmed.'
-                : hasSession
+                : sessionStatus === 'COMPLETED'
+                  ? 'Start a new monitoring session to configure another flight.'
+                  : hasSession
                   ? 'Add flight and route details for this monitoring session.'
                   : 'Start a session before configuring flight context.'}
             </p>

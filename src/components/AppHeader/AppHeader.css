@@ -4,7 +4,8 @@
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-5);
-  padding-block: var(--space-5);
+  min-height: 74px;
+  padding-block: var(--space-4);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -19,15 +20,15 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-3);
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 700;
   letter-spacing: 0.14em;
 }
 
 .app-header__mark {
-  width: 32px;
-  height: 32px;
-  color: var(--color-text-secondary);
+  width: 34px;
+  height: 34px;
+  color: var(--color-normal);
 }
 
 .app-header__title {
@@ -36,13 +37,13 @@
 }
 
 .app-header h1 {
-  font-size: 0.9375rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .app-header__title p {
   color: var(--color-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .app-header__statuses {
@@ -56,11 +57,14 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  min-height: 38px;
+  padding-inline: var(--space-3);
+  border-left: 1px solid var(--color-border);
 }
 
 .app-header dt {
   color: var(--color-text-secondary);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
