@@ -20,6 +20,8 @@ The console requests `GET /health` once when it mounts. A valid AeroEyes Monitor
 
 When the API is online, **Start monitoring** creates a real MonitoringSession through `POST /sessions`. The session ID is retained in `sessionStorage` for the current browser tab, and a reload restores the canonical session with `GET /sessions/{session_id}`. An active session is completed through `POST /sessions/{session_id}/complete`.
 
+The Attention Status panel reads `GET /sessions/{session_id}/attention-state`. Active sessions poll sequentially once per second, with no overlapping requests; completed sessions are read once. Because attention events are transition-based, the event timestamp is presented as the **last state change**, not as proof that the local Core is currently live. Failed refreshes retain the last valid event as **last known** while marking current telemetry unavailable.
+
 Flight Context belongs to the current MonitoringSession and is always loaded from the Monitoring API with `GET /sessions/{session_id}/context`; context data is not persisted in browser storage. Saving sends all fields through `PUT`, which completely replaces the context resource, while **Clear context** removes it through `DELETE`.
 
 The Weather panel retrieves current METAR data only through the Monitoring API's `GET /sessions/{session_id}/weather` route. The browser never calls AviationWeather.gov directly, does not poll, and does not persist weather locally; updates occur when the canonical route changes or when the user explicitly selects **Refresh METAR**.

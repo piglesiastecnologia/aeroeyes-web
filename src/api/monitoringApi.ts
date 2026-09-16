@@ -14,6 +14,31 @@ export type MonitoringSessionResponse = {
   ended_at: string | null
 }
 
+export type AttentionState = 'NORMAL' | 'ATTENTION' | 'CRITICAL' | 'NO_FACE'
+
+export type AttentionSeverity = 'INFO' | 'LOW' | 'MEDIUM' | 'HIGH'
+
+export type EyeState = 'OPEN' | 'CLOSED' | 'PROLONGED_CLOSURE'
+
+export type AttentionEventResponse = {
+  event_id: string
+  session_id: string
+  occurred_at: string
+  received_at: string
+  state: AttentionState
+  severity: AttentionSeverity
+  face_detected: boolean
+  eye_state: EyeState | null
+  closed_duration_ms: number | null
+  schema_version: 1
+}
+
+export type SessionAttentionStateResponse = {
+  session_id: string
+  availability: 'NO_DATA' | 'AVAILABLE'
+  latest_event: AttentionEventResponse | null
+}
+
 export type SessionContextResponse = {
   session_id: string
   flight_number: string | null
@@ -85,6 +110,18 @@ export class SessionWeatherApiError extends Error {
   constructor(message: string, status: number, code: string | null = null) {
     super(message)
     this.name = 'SessionWeatherApiError'
+    this.status = status
+    this.code = code
+  }
+}
+
+export class SessionAttentionStateApiError extends Error {
+  readonly status: number
+  readonly code: string | null
+
+  constructor(message: string, status: number, code: string | null = null) {
+    super(message)
+    this.name = 'SessionAttentionStateApiError'
     this.status = status
     this.code = code
   }
@@ -183,6 +220,80 @@ function isSessionContextResponse(payload: unknown): payload is SessionContextRe
     && (payload.destination_icao === null
       || (typeof payload.destination_icao === 'string' && /^[A-Z]{4}$/.test(payload.destination_icao)))
   )
+}
+
+function isAttentionEventResponse(
+  payload: unknown,
+  requestedSessionId: string,
+): payload is AttentionEventResponse {
+  return (
+    typeof payload === 'object'
+    && payload !== null
+    && 'event_id' in payload
+    && typeof payload.event_id === 'string'
+    && payload.event_id.trim() !== ''
+    && 'session_id' in payload
+    && payload.session_id === requestedSessionId
+    && 'occurred_at' in payload
+    && isValidDateTime(payload.occurred_at)
+    && 'received_at' in payload
+    && isValidDateTime(payload.received_at)
+    && 'state' in payload
+    && (
+      payload.state === 'NORMAL'
+      || payload.state === 'ATTENTION'
+      || payload.state === 'CRITICAL'
+      || payload.state === 'NO_FACE'
+    )
+    && 'severity' in payload
+    && (
+      payload.severity === 'INFO'
+      || payload.severity === 'LOW'
+      || payload.severity === 'MEDIUM'
+      || payload.severity === 'HIGH'
+    )
+    && 'face_detected' in payload
+    && typeof payload.face_detected === 'boolean'
+    && 'eye_state' in payload
+    && (
+      payload.eye_state === null
+      || payload.eye_state === 'OPEN'
+      || payload.eye_state === 'CLOSED'
+      || payload.eye_state === 'PROLONGED_CLOSURE'
+    )
+    && 'closed_duration_ms' in payload
+    && (
+      payload.closed_duration_ms === null
+      || (
+        typeof payload.closed_duration_ms === 'number'
+        && Number.isInteger(payload.closed_duration_ms)
+        && payload.closed_duration_ms >= 0
+      )
+    )
+    && 'schema_version' in payload
+    && payload.schema_version === 1
+  )
+}
+
+function isSessionAttentionStateResponse(
+  payload: unknown,
+  requestedSessionId: string,
+): payload is SessionAttentionStateResponse {
+  if (
+    typeof payload !== 'object'
+    || payload === null
+    || !('session_id' in payload)
+    || payload.session_id !== requestedSessionId
+    || !('availability' in payload)
+    || !('latest_event' in payload)
+  ) {
+    return false
+  }
+
+  return payload.availability === 'NO_DATA'
+    ? payload.latest_event === null
+    : payload.availability === 'AVAILABLE'
+      && isAttentionEventResponse(payload.latest_event, requestedSessionId)
 }
 
 function isNullableFiniteNumber(value: unknown): value is number | null {
@@ -589,4 +700,44 @@ export async function getSessionWeather(
   }
 
   return readSessionWeather(response, sessionId)
+}
+
+export async function getSessionAttentionState(
+  sessionId: string,
+  signal?: AbortSignal,
+): Promise<SessionAttentionStateResponse> {
+  const response = await fetch(
+    buildMonitoringApiUrl(`sessions/${encodeURIComponent(sessionId)}/attention-state`),
+    { signal },
+  )
+
+  if (response.status === 404) {
+    const detail = await readErrorDetail(response)
+
+    throw new SessionAttentionStateApiError(
+      detail?.code === 'SESSION_NOT_FOUND'
+        ? 'The owning monitoring session no longer exists.'
+        : 'Could not load attention telemetry.',
+      response.status,
+      detail?.code ?? null,
+    )
+  }
+
+  if (response.status !== 200) {
+    throw new SessionAttentionStateApiError(
+      'Could not load attention telemetry.',
+      response.status,
+    )
+  }
+
+  const payload: unknown = await response.json()
+
+  if (!isSessionAttentionStateResponse(payload, sessionId)) {
+    throw new SessionAttentionStateApiError(
+      'Monitoring API returned an unexpected attention state response.',
+      response.status,
+    )
+  }
+
+  return payload
 }

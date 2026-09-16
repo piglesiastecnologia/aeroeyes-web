@@ -7,6 +7,7 @@ import { FlightContextDrawer } from '../../components/FlightContextDrawer/Flight
 import { WeatherPanel } from '../../components/WeatherPanel/WeatherPanel'
 import { useMonitoringApiHealth } from '../../hooks/useMonitoringApiHealth'
 import { useMonitoringSession } from '../../hooks/useMonitoringSession'
+import { useSessionAttentionState } from '../../hooks/useSessionAttentionState'
 import { useSessionContext } from '../../hooks/useSessionContext'
 import { useSessionWeather } from '../../hooks/useSessionWeather'
 import './MonitoringConsole.css'
@@ -23,6 +24,11 @@ export function MonitoringConsole() {
     startSession,
     completeSession,
   } = useMonitoringSession(apiStatus)
+  const {
+    displayStatus: attentionStatus,
+    latestEvent,
+    error: attentionError,
+  } = useSessionAttentionState(apiStatus, session, isSessionStateResolved)
   const {
     context,
     displayStatus: contextDisplayStatus,
@@ -74,7 +80,12 @@ export function MonitoringConsole() {
       <a className="skip-link" href="#monitoring-main">Skip to monitoring console</a>
       <AppHeader apiStatus={apiStatus} sessionStatus={sessionDisplayStatus} />
       <main id="monitoring-main" className="monitoring-console__grid" tabIndex={-1}>
-        <AttentionStatus sessionStatus={sessionDisplayStatus} />
+        <AttentionStatus
+          sessionStatus={sessionDisplayStatus}
+          attentionStatus={attentionStatus}
+          latestEvent={latestEvent}
+          error={attentionError}
+        />
         <MonitoringSession
           apiStatus={apiStatus}
           session={session}
