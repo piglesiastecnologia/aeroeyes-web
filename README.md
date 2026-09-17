@@ -26,6 +26,50 @@ Flight Context belongs to the current MonitoringSession and is always loaded fro
 
 The Weather panel retrieves current METAR data only through the Monitoring API's `GET /sessions/{session_id}/weather` route. The browser never calls AviationWeather.gov directly, does not poll, and does not persist weather locally; updates occur when the canonical route changes or when the user explicitly selects **Refresh METAR**.
 
+## Docker demonstration
+
+The Docker composition is the reproducible integration path for the MVP. It
+starts PostgreSQL, applies API migrations as a one-shot job, starts the
+Monitoring API, and serves the production Web build at
+`http://localhost:18080`.
+
+The Core demonstration is deliberately a separate, one-shot container. It
+does not access a webcam or create a browser window. Instead, it executes the
+existing explicit calibration and monitoring pipeline with deterministic EAR
+observations and monotonic timestamps. At the delivery boundary, it uses the
+UTC time when the job starts so the event belongs to the real MonitoringSession.
+The native Core remains the separate demonstration path for physical camera
+acquisition.
+
+From this repository, with the sibling repositories `aeroeyes-monitoring-api`
+and `aeroeyes-poc` present in the same `Apps` directory:
+
+```sh
+cp compose.env.example compose.env.aeroeyes
+docker compose --env-file compose.env.aeroeyes up --build -d
+```
+
+Wait until `docker compose --env-file compose.env.aeroeyes ps` reports the API as healthy. Open the Web at
+`http://localhost:18080`, select **Start monitoring**, and copy the created
+session ID. Then run the deterministic Core delivery:
+
+```sh
+docker compose --env-file compose.env.aeroeyes run --rm \
+  -e AEROEYES_MONITORING_SESSION_ID=<session-id> \
+  core-demo
+```
+
+The command emits JSON confirming that it entered `MONITORING` and that the
+Monitoring API accepted the event. Refreshing the Web shows the resulting
+attention state. To stop the environment while retaining local database data:
+
+```sh
+docker compose --env-file compose.env.aeroeyes down
+```
+
+Use `docker compose --env-file compose.env.aeroeyes down -v` only when intentionally discarding the local
+PostgreSQL volume.
+
 ## Vite template notes
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
