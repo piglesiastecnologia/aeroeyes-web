@@ -1,0 +1,93 @@
+name: aeroeyes
+
+services:
+  db:
+    image: postgres:15.12-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - aeroeyes
+
+  migrate:
+    build:
+      context: ../aeroeyes-monitoring-api
+    image: aeroeyes-monitoring-api:08a
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - aeroeyes
+
+  api:
+    build:
+      context: ../aeroeyes-monitoring-api
+    image: aeroeyes-monitoring-api:08a
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?set CORS_ALLOWED_ORIGINS in .env}
+    ports:
+      - "${AEROEYES_API_PORT:-8000}:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "from urllib.request import urlopen; response = urlopen('http://127.0.0.1:8000/health', timeout=2); assert response.status == 200",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - aeroeyes
+
+  web:
+    build:
+      context: .
+      args:
+        VITE_MONITORING_API_URL: ${VITE_MONITORING_API_URL:?set VITE_MONITORING_API_URL in .env}
+    image: aeroeyes-web:08a
+    ports:
+      - "${AEROEYES_WEB_PORT:-8080}:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - aeroeyes
+
+  core-demo:
+    profiles: ["demo"]
+    build:
+      context: ../aeroeyes-poc
+    image: aeroeyes-core-demo:08a
+    environment:
+      AEROEYES_MONITORING_API_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - aeroeyes
+
+volumes:
+  postgres_data:
+
+networks:
+  aeroeyes:
+    driver: bridge
