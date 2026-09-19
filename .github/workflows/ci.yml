@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Web quality and image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out Web
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.15.0
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build production bundle
+        run: npm run build
+        env:
+          VITE_MONITORING_API_URL: http://localhost:18000
+
+      - name: Build Web image
+        run: >-
+          docker build
+          --build-arg VITE_MONITORING_API_URL=http://localhost:18000
+          --tag aeroeyes-web:ci
+          .
+
+  integration:
+    name: Compose integration smoke
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out Web under the Compose workspace
+        uses: actions/checkout@v4
+        with:
+          path: aeroeyes-web
+          persist-credentials: false
+
+      - name: Check out Monitoring API
+        uses: actions/checkout@v4
+        with:
+          repository: piglesiastecnologia/aeroeyes-monitoring-api
+          ref: main
+          path: aeroeyes-monitoring-api
+          persist-credentials: false
+
+      - name: Check out Attention Core
+        uses: actions/checkout@v4
+        with:
+          repository: piglesiastecnologia/aeroeyes-attention-core
+          ref: main
+          path: aeroeyes-poc
+          persist-credentials: false
+
+      - name: Run deterministic Compose smoke
+        working-directory: aeroeyes-web
+        run: scripts/ci/compose-smoke.sh
