@@ -69,14 +69,8 @@ jobs:
           path: aeroeyes-monitoring-api
           persist-credentials: false
 
-      - name: Check out Attention Core
-        uses: actions/checkout@v4
-        with:
-          repository: piglesiastecnologia/aeroeyes-attention-core
-          ref: main
-          path: aeroeyes-poc
-          persist-credentials: false
-
-      - name: Run deterministic Compose smoke
+      - name: Run required Scenario 1.1 Compose smoke
         working-directory: aeroeyes-web
+        env:
+          AEROEYES_INCLUDE_CORE_DEMO: "0"
         run: scripts/ci/compose-smoke.sh
