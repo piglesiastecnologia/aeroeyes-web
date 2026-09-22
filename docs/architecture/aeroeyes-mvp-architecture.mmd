@@ -1,0 +1,39 @@
+flowchart LR
+    Operator([Operador<br/>Browser])
+
+    subgraph Required["ENTREGA PUC-RIO · CENÁRIO 1.1"]
+        direction LR
+        Web["AeroEyes Web<br/><small>React · TypeScript · Vite</small>"]
+        API["Monitoring API<br/><small>FastAPI · REST</small>"]
+        DB[("PostgreSQL<br/><small>sessões · contexto · eventos</small>")]
+        Weather["AviationWeather<br/><small>Public METAR Data API</small>"]
+
+        Web -->|"GET · POST · PUT · DELETE"| API
+        API -->|"SQLAlchemy"| DB
+        API -->|"GET METAR"| Weather
+    end
+
+    Operator -->|"usa"| Web
+
+    subgraph Optional["EXTENSÃO OPCIONAL · ATTENTION CORE"]
+        direction LR
+        Camera([Webcam]) --> Native["Core nativo<br/><small>calibração · EAR · PERCLOS</small>"]
+        Demo["core-demo<br/><small>determinístico · hardware-free</small>"]
+    end
+
+    Native -. "POST /sessions/{id}/events" .-> API
+    Demo -. "POST /sessions/{id}/events" .-> API
+
+    classDef actor fill:#0b1b29,stroke:#69aef0,color:#f4f8fb,stroke-width:2px;
+    classDef web fill:#13364a,stroke:#43ded3,color:#f4f8fb,stroke-width:3px;
+    classDef api fill:#193a5b,stroke:#69aef0,color:#f4f8fb,stroke-width:3px;
+    classDef data fill:#102841,stroke:#69aef0,color:#f4f8fb,stroke-width:2px;
+    classDef external fill:#493817,stroke:#f0bd5c,color:#fff7df,stroke-width:3px;
+    classDef optional fill:#2d260f,stroke:#f0bd5c,color:#fff7df,stroke-width:2px;
+
+    class Operator actor;
+    class Web web;
+    class API api;
+    class DB data;
+    class Weather external;
+    class Camera,Native,Demo optional;
