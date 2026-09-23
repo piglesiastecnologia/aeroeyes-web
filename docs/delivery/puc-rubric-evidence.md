@@ -1,65 +1,67 @@
-# PUC MVP delivery evidence
+# Evidências da entrega do MVP — PUC-Rio
 
-This document maps the mandatory Sprint 3 requirements to the AeroEyes delivery. The evaluated architecture follows **Scenario 1.1**:
+**Português** | [English](puc-rubric-evidence.en.md)
+
+Este documento relaciona os requisitos obrigatórios da Sprint 3 à entrega do AeroEyes. A arquitetura avaliada segue o **Cenário 1.1**:
 
 ```text
 AeroEyes Web → Monitoring API → AviationWeather Data API
                             ↘ PostgreSQL
 ```
 
-The Attention Core is an additional AeroEyes capability. It is documented separately and is not required to establish the three-module Scenario 1.1 boundary.
+O Attention Core é uma capacidade adicional do ecossistema AeroEyes. Ele é documentado separadamente e não é necessário para estabelecer a fronteira de três módulos do Cenário 1.1.
 
-## Evidence matrix
+## Matriz de evidências
 
-| PUC requirement | AeroEyes implementation | Repository evidence | Demonstration evidence |
+| Requisito da PUC-Rio | Implementação no AeroEyes | Evidência nos repositórios | Evidência de demonstração |
 | --- | --- | --- | --- |
-| User interface in HTML, CSS and JavaScript | React, TypeScript and Vite EFB monitoring console | `src/pages/MonitoringConsole`, `src/styles`, production `Dockerfile` | Open the containerized Web and interact with a monitoring session |
-| Interface calls GET, POST, PUT and DELETE | Web client calls Monitoring API session and context resources | `src/api/monitoringApi.ts` | `POST /sessions`, `GET /sessions/{id}`, `PUT /sessions/{id}/context`, `DELETE /sessions/{id}/context` |
-| Secondary API with at least four routes | FastAPI exposes health, sessions, context, weather, events and attention read models | Monitoring API `src/aeroeyes_monitoring_api/api` and `/docs` | Use Swagger/OpenAPI and the Web workflow |
-| Persistent data store | PostgreSQL persists sessions, session context and attention events | SQLAlchemy repositories and Alembic migrations | Restart the API against the same database and retrieve the session |
-| Public external API | Monitoring API consumes AviationWeather METAR server-side | `aviation_weather_client.py` and `session_weather_service.py` | Configure departure/destination ICAO codes and refresh METAR in the Web |
-| External data is consumed inside the application | Provider data is validated and normalized before the Web receives it | `GET /sessions/{id}/weather` | Weather panel displays normalized observation and raw METAR; no redirect occurs |
-| Dockerfile for each developed delivery component | Web and Monitoring API each provide a root Dockerfile | `aeroeyes-web/Dockerfile`, `aeroeyes-monitoring-api/Dockerfile` | Build through Docker Compose |
-| Docker Compose at the principal component root | Web repository owns the composition | `compose.yaml`, `compose.env.example` | Start Web, API, migration job and PostgreSQL together |
-| Architecture image | Canonical SVG and PNG describe required and optional boundaries | `docs/architecture/aeroeyes-mvp-architecture.*` | Present the diagram before the live demonstration |
-| Separate public repositories | Web and Monitoring API are the two developed Scenario 1.1 components | GitHub repository links in the main README | Open both repositories during delivery |
+| Interface de usuário em HTML, CSS e JavaScript | Console EFB de monitoramento desenvolvido com React, TypeScript e Vite | `src/pages/MonitoringConsole`, `src/styles` e `Dockerfile` de produção | Abrir o Web conteinerizado e interagir com uma sessão de monitoramento |
+| Interface realiza chamadas GET, POST, PUT e DELETE | O cliente Web consome os recursos de sessão e contexto da Monitoring API | `src/api/monitoringApi.ts` | `POST /sessions`, `GET /sessions/{id}`, `PUT /sessions/{id}/context` e `DELETE /sessions/{id}/context` |
+| API secundária com pelo menos quatro rotas | A FastAPI expõe health check, sessões, contexto, meteorologia, eventos e modelos de leitura de atenção | Monitoring API em `src/aeroeyes_monitoring_api/api` e `/docs` | Utilizar o Swagger/OpenAPI e o fluxo do Web |
+| Armazenamento persistente | O PostgreSQL persiste sessões, contexto da sessão e eventos de atenção | Repositórios SQLAlchemy e migrations do Alembic | Reiniciar a API usando o mesmo banco de dados e recuperar a sessão |
+| API externa pública | A Monitoring API consome METAR do AviationWeather no backend | `aviation_weather_client.py` e `session_weather_service.py` | Configurar os códigos ICAO de origem/destino e atualizar o METAR no Web |
+| Dados externos consumidos dentro da aplicação | Os dados do provedor são validados e normalizados antes de serem entregues ao Web | `GET /sessions/{id}/weather` | O painel meteorológico apresenta a observação normalizada e o METAR bruto, sem redirecionamento |
+| Dockerfile para cada componente desenvolvido da entrega | Web e Monitoring API possuem um Dockerfile na raiz de seus repositórios | `aeroeyes-web/Dockerfile` e `aeroeyes-monitoring-api/Dockerfile` | Construir as imagens por meio do Docker Compose |
+| Docker Compose na raiz do componente principal | O repositório Web é responsável pela composição | `compose.yaml` e `compose.env.example` | Iniciar em conjunto Web, API, job de migration e PostgreSQL |
+| Imagem da arquitetura | SVG e PNG canônicos descrevem as fronteiras obrigatórias e opcionais | `docs/architecture/aeroeyes-mvp-architecture.*` | Apresentar o diagrama antes da demonstração ao vivo |
+| Repositórios públicos separados | Web e Monitoring API são os dois componentes desenvolvidos do Cenário 1.1 | Links dos repositórios GitHub no README principal | Abrir os dois repositórios durante a apresentação |
 
-## Required HTTP interactions
+## Interações HTTP obrigatórias
 
-| Method | Route | UI action |
+| Método | Rota | Ação na interface |
 | --- | --- | --- |
-| `GET` | `/health` | Display API availability |
-| `POST` | `/sessions` | Start monitoring |
-| `GET` | `/sessions/{session_id}` | Restore the canonical session |
-| `POST` | `/sessions/{session_id}/complete` | Complete monitoring |
-| `GET` | `/sessions/{session_id}/context` | Load flight context |
-| `PUT` | `/sessions/{session_id}/context` | Save or replace flight context |
-| `DELETE` | `/sessions/{session_id}/context` | Clear flight context |
-| `GET` | `/sessions/{session_id}/weather` | Load normalized METAR observations |
-| `GET` | `/sessions/{session_id}/attention-state` | Load the latest optional attention state |
-| `GET` | `/sessions/{session_id}/events?limit=10` | Load recent optional attention events |
+| `GET` | `/health` | Exibir a disponibilidade da API |
+| `POST` | `/sessions` | Iniciar o monitoramento |
+| `GET` | `/sessions/{session_id}` | Restaurar a sessão canônica |
+| `POST` | `/sessions/{session_id}/complete` | Concluir o monitoramento |
+| `GET` | `/sessions/{session_id}/context` | Carregar o contexto de voo |
+| `PUT` | `/sessions/{session_id}/context` | Salvar ou substituir o contexto de voo |
+| `DELETE` | `/sessions/{session_id}/context` | Limpar o contexto de voo |
+| `GET` | `/sessions/{session_id}/weather` | Carregar as observações METAR normalizadas |
+| `GET` | `/sessions/{session_id}/attention-state` | Carregar o estado de atenção opcional mais recente |
+| `GET` | `/sessions/{session_id}/events?limit=10` | Carregar os eventos opcionais recentes de atenção |
 
-## External API declaration
+## Declaração da API externa
 
-- Provider: AviationWeather.gov Data API.
-- Product: METAR terminal observations.
-- Request used by the backend: `GET https://aviationweather.gov/api/data/metar` with documented query parameters for ICAO station identifiers and JSON format.
-- Authentication: no account or API key is required for public weather data.
-- Consumption boundary: only the Monitoring API calls the provider; the browser never calls it directly.
-- Operational restriction: requests are intentionally scoped and user-triggered. The provider documents rate limiting and asks consumers to avoid excessive request frequency.
-- Official documentation: <https://aviationweather.gov/data/api/>
+- Provedor: AviationWeather.gov Data API.
+- Produto: observações meteorológicas de aeródromo METAR.
+- Requisição realizada pelo backend: `GET https://aviationweather.gov/api/data/metar`, usando os parâmetros documentados para identificadores ICAO das estações e formato JSON.
+- Autenticação: os dados meteorológicos públicos não exigem conta nem chave de API.
+- Fronteira de consumo: somente a Monitoring API acessa o provedor; o navegador nunca o chama diretamente.
+- Restrição operacional: as requisições são intencionalmente limitadas e iniciadas pelo usuário. O provedor documenta limites de uso e solicita que os consumidores evitem frequência excessiva de requisições.
+- Documentação oficial: <https://aviationweather.gov/data/api/>
 
-## Additional AeroEyes capability
+## Capacidade adicional do AeroEyes
 
-The private Attention Core repository contains the native camera/calibration runtime and a deterministic `core-demo` container. Both can publish attention events to an existing MonitoringSession. This extension strengthens the project demonstration but remains outside the minimum Scenario 1.1 repository set.
+O repositório privado do Attention Core contém o runtime nativo de câmera e calibração e um container determinístico `core-demo`. Ambos podem publicar eventos de atenção em uma `MonitoringSession` existente. Essa extensão fortalece a demonstração do projeto, mas permanece fora do conjunto mínimo de repositórios do Cenário 1.1.
 
-The native and container paths are deliberately distinct:
+Os caminhos nativo e conteinerizado são deliberadamente distintos:
 
-- native Core: physical webcam, calibration UI, optional presentation audio and live attention analysis;
-- `core-demo`: hardware-free deterministic observations for Docker and CI integration evidence.
+- Core nativo: webcam física, interface de calibração, áudio opcional de apresentação e análise de atenção ao vivo;
+- `core-demo`: observações determinísticas sem hardware para evidências de integração com Docker e CI.
 
-## Final evidence still required
+## Evidências finais ainda necessárias
 
-- Record the successful CI run URLs used in the delivery.
-- Execute the #09B clean-room procedure from fresh clones.
-- Record the final video URL after export.
+- Registrar as URLs das execuções de CI bem-sucedidas utilizadas na entrega.
+- Executar o procedimento clean-room do #09B a partir de clones novos.
+- Registrar a URL final do vídeo após a exportação.
