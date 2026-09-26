@@ -11,10 +11,11 @@
   display: grid;
   flex: 1;
   grid-template-columns: minmax(0, 68fr) minmax(19rem, 32fr);
-  grid-template-rows: auto auto auto;
+  grid-template-rows: auto auto auto auto;
   grid-template-areas:
     'context context'
     'attention session'
+    'events events'
     'weather weather';
   align-items: start;
   align-content: start;
@@ -23,6 +24,7 @@
 }
 
 .monitoring-console__grid > .attention-status { grid-area: attention; }
+.monitoring-console__grid > .attention-events { grid-area: events; }
 .monitoring-console__grid > .monitoring-session { grid-area: session; }
 .monitoring-console__grid > .flight-context { grid-area: context; }
 .monitoring-console__grid > .weather-panel { grid-area: weather; }
@@ -75,10 +77,11 @@
 @media (min-width: 768px) and (max-width: 1099px) {
   .monitoring-console__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: auto auto auto;
+    grid-template-rows: auto auto auto auto;
     grid-template-areas:
       'attention attention'
       'session context'
+      'events events'
       'weather weather';
   }
 }
@@ -86,8 +89,8 @@
 @media (max-width: 767px) {
   .monitoring-console__grid {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto auto auto;
-    grid-template-areas: 'attention' 'session' 'context' 'weather';
+    grid-template-rows: auto auto auto auto auto;
+    grid-template-areas: 'attention' 'session' 'context' 'events' 'weather';
   }
 
   .monitoring-console__grid > .attention-status {

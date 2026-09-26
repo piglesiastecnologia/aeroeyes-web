@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AppHeader } from '../../components/AppHeader/AppHeader'
+import { AttentionEvents } from '../../components/AttentionEvents/AttentionEvents'
 import { AttentionStatus } from '../../components/AttentionStatus/AttentionStatus'
 import { MonitoringSession } from '../../components/MonitoringSession/MonitoringSession'
 import { FlightContext } from '../../components/FlightContext/FlightContext'
@@ -7,6 +8,7 @@ import { FlightContextDrawer } from '../../components/FlightContextDrawer/Flight
 import { WeatherPanel } from '../../components/WeatherPanel/WeatherPanel'
 import { useMonitoringApiHealth } from '../../hooks/useMonitoringApiHealth'
 import { useMonitoringSession } from '../../hooks/useMonitoringSession'
+import { useSessionAttentionEvents } from '../../hooks/useSessionAttentionEvents'
 import { useSessionAttentionState } from '../../hooks/useSessionAttentionState'
 import { useSessionContext } from '../../hooks/useSessionContext'
 import { useSessionWeather } from '../../hooks/useSessionWeather'
@@ -29,6 +31,11 @@ export function MonitoringConsole() {
     latestEvent,
     error: attentionError,
   } = useSessionAttentionState(apiStatus, session, isSessionStateResolved)
+  const {
+    displayStatus: attentionEventsStatus,
+    events: attentionEvents,
+    error: attentionEventsError,
+  } = useSessionAttentionEvents(apiStatus, session, isSessionStateResolved)
   const {
     context,
     displayStatus: contextDisplayStatus,
@@ -95,6 +102,12 @@ export function MonitoringConsole() {
           isSessionStateResolved={isSessionStateResolved}
           onStart={startSession}
           onComplete={completeSession}
+        />
+        <AttentionEvents
+          sessionStatus={sessionDisplayStatus}
+          status={attentionEventsStatus}
+          events={attentionEvents}
+          error={attentionEventsError}
         />
         <FlightContext
           context={context}

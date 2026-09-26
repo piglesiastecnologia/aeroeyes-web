@@ -39,6 +39,11 @@ export type SessionAttentionStateResponse = {
   latest_event: AttentionEventResponse | null
 }
 
+export type SessionAttentionEventsResponse = {
+  session_id: string
+  events: AttentionEventResponse[]
+}
+
 export type SessionContextResponse = {
   session_id: string
   flight_number: string | null
@@ -122,6 +127,18 @@ export class SessionAttentionStateApiError extends Error {
   constructor(message: string, status: number, code: string | null = null) {
     super(message)
     this.name = 'SessionAttentionStateApiError'
+    this.status = status
+    this.code = code
+  }
+}
+
+export class SessionAttentionEventsApiError extends Error {
+  readonly status: number
+  readonly code: string | null
+
+  constructor(message: string, status: number, code: string | null = null) {
+    super(message)
+    this.name = 'SessionAttentionEventsApiError'
     this.status = status
     this.code = code
   }
@@ -294,6 +311,21 @@ function isSessionAttentionStateResponse(
     ? payload.latest_event === null
     : payload.availability === 'AVAILABLE'
       && isAttentionEventResponse(payload.latest_event, requestedSessionId)
+}
+
+function isSessionAttentionEventsResponse(
+  payload: unknown,
+  requestedSessionId: string,
+): payload is SessionAttentionEventsResponse {
+  return (
+    typeof payload === 'object'
+    && payload !== null
+    && 'session_id' in payload
+    && payload.session_id === requestedSessionId
+    && 'events' in payload
+    && Array.isArray(payload.events)
+    && payload.events.every((event) => isAttentionEventResponse(event, requestedSessionId))
+  )
 }
 
 function isNullableFiniteNumber(value: unknown): value is number | null {
@@ -735,6 +767,49 @@ export async function getSessionAttentionState(
   if (!isSessionAttentionStateResponse(payload, sessionId)) {
     throw new SessionAttentionStateApiError(
       'Monitoring API returned an unexpected attention state response.',
+      response.status,
+    )
+  }
+
+  return payload
+}
+
+export async function getSessionAttentionEvents(
+  sessionId: string,
+  limit = 10,
+  signal?: AbortSignal,
+): Promise<SessionAttentionEventsResponse> {
+  const url = new URL(
+    buildMonitoringApiUrl(`sessions/${encodeURIComponent(sessionId)}/events`),
+  )
+  url.searchParams.set('limit', String(limit))
+
+  const response = await fetch(url, { signal })
+
+  if (response.status === 404) {
+    const detail = await readErrorDetail(response)
+
+    throw new SessionAttentionEventsApiError(
+      detail?.code === 'SESSION_NOT_FOUND'
+        ? 'The owning monitoring session no longer exists.'
+        : 'Could not load attention events.',
+      response.status,
+      detail?.code ?? null,
+    )
+  }
+
+  if (response.status !== 200) {
+    throw new SessionAttentionEventsApiError(
+      'Could not load attention events.',
+      response.status,
+    )
+  }
+
+  const payload: unknown = await response.json()
+
+  if (!isSessionAttentionEventsResponse(payload, sessionId)) {
+    throw new SessionAttentionEventsApiError(
+      'Monitoring API returned an unexpected attention events response.',
       response.status,
     )
   }
