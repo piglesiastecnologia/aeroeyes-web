@@ -1,0 +1,100 @@
+.attention-events {
+  border-top: 3px solid var(--color-inactive);
+}
+
+.attention-events__list {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-5) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.attention-events__item {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.8fr) minmax(0, 2fr);
+  gap: var(--space-5);
+  align-items: center;
+  padding: var(--space-4);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-inactive);
+  border-radius: var(--radius-control);
+}
+
+.attention-events__item--normal { border-left-color: var(--color-normal); }
+.attention-events__item--attention,
+.attention-events__item--no_face { border-left-color: var(--color-attention); }
+.attention-events__item--critical { border-left-color: var(--color-critical); }
+
+.attention-events__primary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.attention-events__primary time {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.attention-events__details {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.attention-events__details div {
+  min-width: 0;
+}
+
+.attention-events__details dt {
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.attention-events__details dd {
+  overflow-wrap: anywhere;
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.attention-events__empty {
+  display: grid;
+  gap: var(--space-2);
+  min-height: 8rem;
+  place-content: center;
+  margin-top: var(--space-5);
+  text-align: center;
+}
+
+.attention-events__error {
+  margin-top: var(--space-3);
+  color: var(--color-attention);
+  font-size: 0.8125rem;
+}
+
+.attention-events__footnote {
+  margin-top: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 767px) {
+  .attention-events__item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .attention-events__details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

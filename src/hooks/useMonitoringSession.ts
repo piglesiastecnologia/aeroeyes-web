@@ -15,6 +15,15 @@ export type SessionDisplayStatus = MonitoringSessionStatus | 'NONE' | 'UNKNOWN'
 
 const SESSION_STORAGE_KEY = 'aeroeyes.monitoringSessionId'
 
+function clearStoredSessionId(): boolean {
+  try {
+    sessionStorage.removeItem(SESSION_STORAGE_KEY)
+    return true
+  } catch {
+    return false
+  }
+}
+
 export function useMonitoringSession(apiStatus: ApiStatus) {
   const [session, setSession] = useState<MonitoringSessionResponse | null>(null)
   const [operation, setOperation] = useState<MonitoringSessionOperation>('RESTORING')
@@ -74,10 +83,15 @@ export function useMonitoringSession(apiStatus: ApiStatus) {
             return
           }
 
-          if (restoredSession === null) {
-            sessionStorage.removeItem(SESSION_STORAGE_KEY)
+          if (restoredSession === null || restoredSession.status === 'COMPLETED') {
+            const wasCleared = clearStoredSessionId()
             setSession(null)
             setIsSessionStateResolved(true)
+
+            if (!wasCleared) {
+              setError('Saved session state could not be cleared.')
+            }
+
             return
           }
 
@@ -170,6 +184,10 @@ export function useMonitoringSession(apiStatus: ApiStatus) {
 
       if (isMounted.current) {
         setSession(completedSession)
+
+        if (!clearStoredSessionId()) {
+          setError('Session completed, but saved state could not be cleared.')
+        }
       }
     } catch {
       if (isMounted.current) {
