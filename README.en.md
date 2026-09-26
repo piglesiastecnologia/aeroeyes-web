@@ -55,27 +55,6 @@ The browser uses `GET`, `POST`, `PUT`, and `DELETE`. It never calls
 AviationWeather.gov directly: the Monitoring API validates and normalizes the
 provider response.
 
-## Local frontend
-
-Requirements:
-
-- Node.js 22.15 or compatible;
-- a running Monitoring API.
-
-Copy `.env.example` to `.env.local`:
-
-```dotenv
-VITE_MONITORING_API_URL=http://127.0.0.1:8000
-```
-
-Then install and start:
-
-```sh
-npm ci
-npm run dev
-```
-
-The application is available at `http://localhost:5173`.
 
 ## Reproducible Docker Compose execution
 
@@ -114,6 +93,29 @@ docker compose --env-file compose.env.aeroeyes run --rm \
 
 The native webcam Core is a separate local demonstration. The browser does not
 control the camera, and the required delivery path does not depend on it.
+
+## Local frontend
+
+Requirements:
+
+- Node.js 22.15 or compatible;
+- a running Monitoring API.
+
+Copy `.env.example` to `.env.local`:
+
+```dotenv
+VITE_MONITORING_API_URL=http://127.0.0.1:8000
+```
+
+Then install and start:
+
+```sh
+npm ci
+npm run dev
+```
+
+The application is available at `http://localhost:5173`.
+
 
 ## HTTP contracts exercised by the UI
 

@@ -56,29 +56,7 @@ e como [fonte Mermaid](docs/architecture/aeroeyes-mvp-architecture.mmd).
 O navegador usa `GET`, `POST`, `PUT` e `DELETE`. Ele nunca chama
 AviationWeather.gov diretamente: a Monitoring API valida, normaliza e devolve
 o contrato usado pela interface.
-
-## Execução local do frontend
-
-Requisitos:
-
-- Node.js 22.15 ou compatível;
-- Monitoring API em execução.
-
-Copie `.env.example` para `.env.local` e configure a URL da API:
-
-```dotenv
-VITE_MONITORING_API_URL=http://127.0.0.1:8000
-```
-
-Instale as dependências e inicie o frontend:
-
-```sh
-npm ci
-npm run dev
-```
-
-A aplicação fica disponível em `http://localhost:5173`.
-
+ 
 ## Execução reproduzível com Docker Compose
 
 O caminho principal do MVP inicia PostgreSQL, aplica as migrações da API,
@@ -117,6 +95,29 @@ docker compose --env-file compose.env.aeroeyes run --rm \
 
 O Core nativo com webcam é uma demonstração separada e local. O navegador não
 controla a câmera, e o container principal da banca não depende dela.
+
+## Execução local do frontend
+
+Requisitos:
+
+- Node.js 22.15 ou compatível;
+- Monitoring API em execução.
+
+Copie `.env.example` para `.env.local` e configure a URL da API:
+
+```dotenv
+VITE_MONITORING_API_URL=http://127.0.0.1:8000
+```
+
+Instale as dependências e inicie o frontend:
+
+```sh
+npm ci
+npm run dev
+```
+
+A aplicação fica disponível em `http://localhost:5173`.
+
 
 ## Contratos HTTP exercitados pela interface
 
