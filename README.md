@@ -140,11 +140,9 @@ npm run lint
 npm run build
 ```
 
-O workflow de CI define a validação do frontend, da imagem e do smoke test
-determinístico da composição. O #09B executará o roteiro final em clones limpos
-e registrará os links das execuções bem-sucedidas. Como o Core é privado, o job
-de integração só consegue incluir `core-demo` quando o workflow possui acesso
-explícito ao repositório; isso não altera o caminho obrigatório Web/API/DB.
+O workflow de CI valida o frontend, a imagem de container e o smoke test
+determinístico da composição Web/API/PostgreSQL. A demonstração opcional do
+Attention Core é complementar e não altera o caminho principal de execução.
 
 ## Limites declarados
 

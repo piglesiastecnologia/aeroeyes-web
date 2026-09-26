@@ -137,10 +137,9 @@ npm run lint
 npm run build
 ```
 
-CI defines frontend, image, and deterministic composition-smoke validation.
-The final #09B clean-room run records successful execution links. Because the
-Core is private, an integration job can include `core-demo` only when it has
-explicit repository access; this does not change the required Web/API/DB path.
+CI validates the frontend, the container image, and the deterministic
+Web/API/PostgreSQL composition smoke test. The optional Attention Core
+demonstration is complementary and does not change the primary execution path.
 
 ## Declared limits
 
