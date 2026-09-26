@@ -152,15 +152,15 @@ function getEmptyView(
 
   if (sessionStatus === 'COMPLETED') {
     return {
-      badge: 'COMPLETED',
+      badge: 'STANDBY',
       badgeVariant: 'neutral',
       colorVariant: 'neutral',
-      state: 'COMPLETE',
+      state: 'STANDBY',
       eyebrow: 'Session closed',
-      message: 'Monitoring session completed.',
-      description: 'No attention event was recorded for this session.',
-      telemetry: attentionStatus === 'NO_DATA' ? 'NO DATA' : 'CHECKING',
-      footnote: 'Live attention monitoring has ended',
+      message: 'Attention monitoring is on standby.',
+      description: 'Start a new monitoring session to receive attention telemetry.',
+      telemetry: 'NOT CONNECTED',
+      footnote: 'Awaiting a new monitoring session',
     }
   }
 

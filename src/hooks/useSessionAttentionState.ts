@@ -43,6 +43,7 @@ export function useSessionAttentionState(
     apiStatus === 'ONLINE'
     && isSessionStateResolved
     && sessionId !== null
+    && sessionStatus === 'ACTIVE'
   )
   const [resolution, setResolution] = useState<AttentionResolution | null>(null)
   const currentResolution = sessionId !== null && resolution?.sessionId === sessionId
@@ -103,15 +104,20 @@ export function useSessionAttentionState(
     }
   }, [canLoad, sessionId, sessionStatus])
 
-  const displayStatus: AttentionTelemetryStatus = apiStatus === 'OFFLINE'
-    ? 'UNAVAILABLE'
-    : !isSessionStateResolved || sessionId === null
-      ? 'UNKNOWN'
-      : currentResolution?.status ?? 'UNKNOWN'
+  const isCompleted = sessionStatus === 'COMPLETED'
+  const displayStatus: AttentionTelemetryStatus = isCompleted
+    ? 'UNKNOWN'
+    : (
+        apiStatus === 'OFFLINE'
+          ? 'UNAVAILABLE'
+          : !isSessionStateResolved || sessionId === null
+            ? 'UNKNOWN'
+            : currentResolution?.status ?? 'UNKNOWN'
+      )
 
   return {
     displayStatus,
-    latestEvent: currentResolution?.latestEvent ?? null,
-    error: currentResolution?.error ?? null,
+    latestEvent: isCompleted ? null : currentResolution?.latestEvent ?? null,
+    error: isCompleted ? null : currentResolution?.error ?? null,
   }
 }
